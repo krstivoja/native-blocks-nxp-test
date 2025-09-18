@@ -9,8 +9,7 @@
 	"description": "Example block scaffolded with Create Block tool.",
 	"example": {},
 	"supports": {
-		"html": false,
-		"innerBlocks": true
+		"html": false
 	},
 	"textdomain": "native-ssr-inner",
 	"editorScript": "file:./index.js",

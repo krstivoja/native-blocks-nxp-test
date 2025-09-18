@@ -39,17 +39,11 @@ function nbnpx_process_innerblocks_template( $template_path, $attributes = [], $
         return $rendered_content;
     } else {
         // On frontend: replace <InnerBlocks /> with actual inner blocks content
+        // Combine both patterns for better performance
         $processed_content = preg_replace(
-            '/<InnerBlocks\s*\/?>/i',
+            '/<InnerBlocks(?:\s*\/?>|><\/InnerBlocks>)/i',
             $content ?? '',
             $rendered_content
-        );
-
-        // Also handle self-closing and standard closing tags
-        $processed_content = preg_replace(
-            '/<InnerBlocks><\/InnerBlocks>/i',
-            $content ?? '',
-            $processed_content
         );
 
         return $processed_content;

@@ -6,25 +6,20 @@ import './style.scss';
 import './editor.scss';
 import metadata from './block.json';
 
-// Move constants outside component to prevent recreation
-const ALLOWED_BLOCKS = [
-	'core/paragraph',
-	'core/heading',
-	'core/image',
-	'core/button',
-	'core/group',
-	'core/columns',
-	'core/column'
-];
-
-const TEMPLATE = [
-	['core/paragraph', { placeholder: 'Add some content here...' }]
-];
-
-// Memoized options object to prevent recreation
+// Pre-defined constants to prevent recreation during renders
 const PARSER_OPTIONS = {
-	allowedBlocks: ALLOWED_BLOCKS,
-	template: TEMPLATE,
+	allowedBlocks: [
+		'core/paragraph',
+		'core/heading',
+		'core/image',
+		'core/button',
+		'core/group',
+		'core/columns',
+		'core/column'
+	],
+	template: [
+		['core/paragraph', { placeholder: 'Add some content here...' }]
+	],
 	templateLock: false
 };
 
@@ -56,7 +51,14 @@ const Edit = memo(function Edit() {
 	// Memoize the parser call to prevent unnecessary re-renders
 	const renderedContent = useMemo(() => {
 		if (isLoading) return null;
-		return window.NativeBlocksParser.createServerContentRenderer(serverContent, blockProps, PARSER_OPTIONS);
+
+		// Check if parser is available (defensive programming)
+		if (window.NativeBlocksParser && window.NativeBlocksParser.createServerContentRenderer) {
+			return window.NativeBlocksParser.createServerContentRenderer(serverContent, blockProps, PARSER_OPTIONS);
+		}
+
+		// Fallback if parser is not loaded
+		return <div {...blockProps} dangerouslySetInnerHTML={{ __html: serverContent }} />;
 	}, [serverContent, blockProps, isLoading]);
 
 	if (isLoading) {

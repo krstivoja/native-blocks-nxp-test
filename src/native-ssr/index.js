@@ -33,7 +33,14 @@ const Edit = memo(function Edit() {
 	// Memoize the parser call to prevent unnecessary re-renders
 	const renderedContent = useMemo(() => {
 		if (isLoading) return null;
-		return window.NativeBlocksParser.createServerContentRenderer(serverContent, blockProps);
+
+		// Check if parser is available (defensive programming)
+		if (window.NativeBlocksParser && window.NativeBlocksParser.createServerContentRenderer) {
+			return window.NativeBlocksParser.createServerContentRenderer(serverContent, blockProps);
+		}
+
+		// Fallback if parser is not loaded
+		return <div {...blockProps} dangerouslySetInnerHTML={{ __html: serverContent }} />;
 	}, [serverContent, blockProps, isLoading]);
 
 	if (isLoading) {

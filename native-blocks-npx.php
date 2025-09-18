@@ -21,18 +21,42 @@ if ( ! defined( 'ABSPATH' ) ) {
 require_once __DIR__ . '/includes/innerblocks-processor.php';
 
 /**
- * Enqueue the shared parser script
+ * Check if any block render templates contain <InnerBlocks /> placeholders
+ */
+function nbnpx_has_innerblocks_in_templates() {
+	$manifest_data = require __DIR__ . '/build/blocks-manifest.php';
+
+	foreach ( $manifest_data as $block_type => $block_config ) {
+		$render_file = __DIR__ . "/src/{$block_type}/render.php";
+
+		if ( file_exists( $render_file ) ) {
+			$content = file_get_contents( $render_file );
+			// Use the same detection logic as the processor
+			if ( preg_match( '/<InnerBlocks(?:\s*\/?>|><\/InnerBlocks>)/i', $content ) ) {
+				return true;
+			}
+		}
+	}
+
+	return false;
+}
+
+/**
+ * Conditionally enqueue the shared parser script only if templates actually contain <InnerBlocks />
  */
 function nbnpx_enqueue_shared_parser() {
-	$asset_file = include __DIR__ . '/build/shared/dom-to-react-parser.asset.php';
-	
-	wp_enqueue_script(
-		'native-blocks-parser',
-		plugins_url('build/shared/dom-to-react-parser.js', __FILE__),
-		$asset_file['dependencies'],
-		$asset_file['version'],
-		true
-	);
+	// Only load the parser if we actually have <InnerBlocks /> in templates
+	if ( nbnpx_has_innerblocks_in_templates() ) {
+		$asset_file = include __DIR__ . '/build/shared/dom-to-react-parser.asset.php';
+
+		wp_enqueue_script(
+			'native-blocks-parser',
+			plugins_url('build/shared/dom-to-react-parser.js', __FILE__),
+			$asset_file['dependencies'],
+			$asset_file['version'],
+			true
+		);
+	}
 }
 add_action('enqueue_block_editor_assets', 'nbnpx_enqueue_shared_parser');
 
@@ -49,18 +73,22 @@ function nbnpx_native_blocks_npx_block_init() {
 
 	$manifest_data = require __DIR__ . '/build/blocks-manifest.php';
 	foreach ( $manifest_data as $block_type => $block_config ) {
-		// Check if this block supports InnerBlocks
-		$supports_innerblocks = isset( $block_config['supports']['innerBlocks'] ) && $block_config['supports']['innerBlocks'];
-		
-		if ( $supports_innerblocks ) {
-			// Use the InnerBlocks processor for blocks that support inner blocks
+		$render_file = __DIR__ . "/src/{$block_type}/render.php";
+
+		// Check if this block's render template contains <InnerBlocks />
+		$has_innerblocks_in_template = false;
+		if ( file_exists( $render_file ) ) {
+			$content = file_get_contents( $render_file );
+			$has_innerblocks_in_template = preg_match( '/<InnerBlocks(?:\s*\/?>|><\/InnerBlocks>)/i', $content );
+		}
+
+		if ( $has_innerblocks_in_template ) {
+			// Use the InnerBlocks processor for blocks that have <InnerBlocks /> in templates
 			register_block_type( __DIR__ . "/build/{$block_type}", [
-				'render_callback' => nbnpx_create_innerblocks_render_callback(
-					__DIR__ . "/src/{$block_type}/render.php"
-				)
+				'render_callback' => nbnpx_create_innerblocks_render_callback( $render_file )
 			]);
 		} else {
-			// Use standard registration for blocks without InnerBlocks support
+			// Use standard registration for blocks without <InnerBlocks /> in templates
 			register_block_type( __DIR__ . "/build/{$block_type}" );
 		}
 	}
