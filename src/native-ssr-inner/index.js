@@ -6,21 +6,28 @@ import './style.scss';
 import './editor.scss';
 import metadata from './block.json';
 
-// Pre-defined constants to prevent recreation during renders
+// Native constants to prevent recreation during renders
+const ALLOWED_BLOCKS = [
+	'core/paragraph',
+	'core/heading',
+	'core/image',
+	'core/button',
+	'core/group',
+	'core/columns',
+	'core/column'
+];
+
+const TEMPLATE = [
+	['core/paragraph', { placeholder: 'Add some content here...' }]
+];
+
+const TEMPLATE_LOCK = false;
+
+// Combine into options object only when needed
 const PARSER_OPTIONS = {
-	allowedBlocks: [
-		'core/paragraph',
-		'core/heading',
-		'core/image',
-		'core/button',
-		'core/group',
-		'core/columns',
-		'core/column'
-	],
-	template: [
-		['core/paragraph', { placeholder: 'Add some content here...' }]
-	],
-	templateLock: false
+	allowedBlocks: ALLOWED_BLOCKS,
+	template: TEMPLATE,
+	templateLock: TEMPLATE_LOCK
 };
 
 const Edit = memo(function Edit() {
