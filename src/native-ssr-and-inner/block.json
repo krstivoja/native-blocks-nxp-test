@@ -15,5 +15,6 @@
 	"textdomain": "native-ssr-inner",
 	"editorScript": "file:./index.js",
 	"editorStyle": "file:./index.css",
-	"style": "file:./style-index.css"
+	"style": "file:./style-index.css",
+	"render": "file:./render-wraper.php"
 }

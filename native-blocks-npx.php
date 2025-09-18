@@ -1,6 +1,6 @@
 <?php
 /**
- * Plugin Name:       First block
+ * Plugin Name:       Native Blocks NPX 
  * Description:       Example block scaffolded with Create Block tool.
  * Version:           0.1.0
  * Requires at least: 6.7
