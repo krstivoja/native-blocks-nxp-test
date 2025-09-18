@@ -3,10 +3,10 @@
 	"apiVersion": 3,
 	"name": "nbnpx/native-ssr-inner",
 	"version": "0.1.0",
-	"title": "SSR block + Inner",
+	"title": "SSR block with Inner",
 	"category": "widgets",
 	"icon": "smiley",
-	"description": "Example block with server-side rendering and InnerBlocks support.",
+	"description": "Example block scaffolded with Create Block tool.",
 	"example": {},
 	"supports": {
 		"html": false,

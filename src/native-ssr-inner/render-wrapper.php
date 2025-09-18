@@ -1,7 +1,7 @@
 <?php
 /**
  * Render wrapper that processes InnerBlocks placeholders
- * This file handles the replacement of <InnerBlocks /> with actual content
+ * This file handles the replacement of placeholder with actual content
  */
 
 // Start output buffering to capture the render.php output
@@ -17,7 +17,7 @@ $rendered_content = ob_get_clean();
 $is_editor_context = defined('REST_REQUEST') && REST_REQUEST;
 
 if ($is_editor_context) {
-    // In editor: keep <InnerBlocks /> as placeholder for JavaScript to process
+    // In editor: keep placeholder as-is for JavaScript to process
     echo $rendered_content;
 } else {
     // On frontend: replace <InnerBlocks /> with actual inner blocks content
@@ -25,13 +25,6 @@ if ($is_editor_context) {
         '/<InnerBlocks\s*\/?>/i',
         $content ?? '',
         $rendered_content
-    );
-
-    // Also handle self-closing and standard closing tags
-    $processed_content = preg_replace(
-        '/<InnerBlocks><\/InnerBlocks>/i',
-        $content ?? '',
-        $processed_content
     );
 
     echo $processed_content;
