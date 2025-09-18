@@ -6,7 +6,7 @@
 	"title": "SSR block + Inner",
 	"category": "widgets",
 	"icon": "smiley",
-	"description": "Example block scaffolded with Create Block tool.",
+	"description": "Example block with server-side rendering and InnerBlocks support.",
 	"example": {},
 	"supports": {
 		"html": false,
@@ -16,5 +16,5 @@
 	"editorScript": "file:./index.js",
 	"editorStyle": "file:./index.css",
 	"style": "file:./style-index.css",
-	"render": "file:./render-wraper.php"
+	"render": "file:./render-wrapper.php"
 }

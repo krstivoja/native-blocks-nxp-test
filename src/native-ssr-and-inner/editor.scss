@@ -1,29 +1,7 @@
 /**
- * The following styles get applied inside the editor only.
- *
- * Replace them with your own styles or remove the file completely.
+ * Editor-specific styles for the SSR + InnerBlocks block
  */
 
 .wp-block-nbnpx-native-ssr-inner {
-	border: 1px solid #ddd;
-	padding: 20px;
 	
-	// Style the inner blocks area
-	.wp-block-inner-blocks {
-		margin-top: 20px;
-		padding: 15px;
-		background: #f9f9f9;
-		border: 2px dashed #ccc;
-		border-radius: 4px;
-		position: relative;
-		
-		&::before {
-			content: "Inner Blocks Editor (content will appear in the preview above):";
-			display: block;
-			font-weight: bold;
-			margin-bottom: 10px;
-			color: #666;
-			font-size: 12px;
-		}
-	}
 }
