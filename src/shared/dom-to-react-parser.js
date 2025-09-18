@@ -6,6 +6,9 @@
 import { InnerBlocks } from '@wordpress/block-editor';
 import { createElement } from '@wordpress/element';
 
+// Expose parser functions globally
+window.NativeBlocksParser = {
+
 /**
  * Parse server content and convert DOM nodes to React elements
  * 
@@ -17,7 +20,7 @@ import { createElement } from '@wordpress/element';
  * @param {string} options.wrapperSelector - CSS selector for the wrapper element (default: '[class*="wp-block-"]')
  * @returns {Object|null} - Object with { elements, wrapperClasses } or null if no placeholder found
  */
-export function parseServerContentWithInnerBlocks(serverContent, options = {}) {
+	parseServerContentWithInnerBlocks: function(serverContent, options = {}) {
 	const {
 		allowedBlocks = null,
 		template = null,
@@ -123,11 +126,11 @@ export function parseServerContentWithInnerBlocks(serverContent, options = {}) {
 		}
 	});
 
-	return {
-		elements,
-		wrapperClasses
-	};
-}
+		return {
+			elements,
+			wrapperClasses
+		};
+	},
 
 /**
  * Create a React component that renders server content with InnerBlocks support
@@ -137,13 +140,14 @@ export function parseServerContentWithInnerBlocks(serverContent, options = {}) {
  * @param {Object} options - Configuration options for InnerBlocks
  * @returns {JSX.Element} - React element
  */
-export function createServerContentRenderer(serverContent, blockProps, options = {}) {
-	const parsed = parseServerContentWithInnerBlocks(serverContent, options);
+	createServerContentRenderer: function(serverContent, blockProps, options = {}) {
+	const parsed = this.parseServerContentWithInnerBlocks(serverContent, options);
 	
 	if (parsed) {
 		return createElement('div', { ...blockProps, className: parsed.wrapperClasses }, ...parsed.elements);
 	}
 	
-	// No placeholder found - render server content as-is
-	return createElement('div', { ...blockProps, dangerouslySetInnerHTML: { __html: serverContent } });
-}
+		// No placeholder found - render server content as-is
+		return createElement('div', { ...blockProps, dangerouslySetInnerHTML: { __html: serverContent } });
+	}
+};

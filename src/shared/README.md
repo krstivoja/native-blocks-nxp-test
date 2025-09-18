@@ -4,43 +4,49 @@ This directory contains shared utilities for processing server-rendered content 
 
 ## DOM-to-React Parser
 
-The `dom-to-react-parser.js` file provides utilities for converting server-rendered HTML with `<InnerBlocks />` placeholders into React elements.
+The `dom-to-react-parser.js` file provides utilities for converting server-rendered HTML with `<InnerBlocks />` placeholders into React elements. The parser is compiled as a separate JavaScript file and loaded globally via PHP.
 
 ### Features
 
+- **Global Availability**: Loaded once via PHP and available to all blocks
 - **Universal Parser**: Works with any block that needs to process server-rendered content
 - **InnerBlocks Support**: Automatically detects and replaces `<InnerBlocks />` placeholders
 - **Flexible Configuration**: Customizable allowed blocks, templates, and wrapper selectors
 - **DOM-to-React Conversion**: Converts HTML elements to React elements with proper attribute handling
 - **Style Processing**: Converts inline CSS strings to React style objects
 
+### How It Works
+
+The parser is compiled as a separate JavaScript file (`build/shared/dom-to-react-parser.js`) and loaded globally via PHP in the main plugin file. This means:
+
+1. **Single Load**: The parser is loaded once for all blocks
+2. **Global Access**: Available as `window.NativeBlocksParser` in all block edit components
+3. **No Imports**: Blocks don't need to import the parser - it's globally available
+4. **Automatic Dependencies**: WordPress handles dependency loading via the asset file
+
 ### Usage
 
 #### Basic Usage
 
 ```javascript
-import { createServerContentRenderer } from '../shared';
-
 function Edit() {
     const [serverContent, setServerContent] = useState('');
     const blockProps = useBlockProps();
 
     // Fetch server content...
     
-    return createServerContentRenderer(serverContent, blockProps);
+    return window.NativeBlocksParser.createServerContentRenderer(serverContent, blockProps);
 }
 ```
 
 #### With InnerBlocks Configuration
 
 ```javascript
-import { createServerContentRenderer } from '../shared';
-
 function Edit() {
     const [serverContent, setServerContent] = useState('');
     const blockProps = useBlockProps();
 
-    return createServerContentRenderer(serverContent, blockProps, {
+    return window.NativeBlocksParser.createServerContentRenderer(serverContent, blockProps, {
         allowedBlocks: ['core/paragraph', 'core/heading', 'core/image'],
         template: [['core/paragraph', { placeholder: 'Add content...' }]],
         templateLock: false,
@@ -52,27 +58,23 @@ function Edit() {
 #### Minimal Configuration (Uses InnerBlocks defaults)
 
 ```javascript
-import { createServerContentRenderer } from '../shared';
-
 function Edit() {
     const [serverContent, setServerContent] = useState('');
     const blockProps = useBlockProps();
 
     // Uses InnerBlocks default behavior - no restrictions
-    return createServerContentRenderer(serverContent, blockProps);
+    return window.NativeBlocksParser.createServerContentRenderer(serverContent, blockProps);
 }
 ```
 
 #### Advanced Usage with Custom Parser
 
 ```javascript
-import { parseServerContentWithInnerBlocks } from '../shared';
-
 function Edit() {
     const [serverContent, setServerContent] = useState('');
     const blockProps = useBlockProps();
 
-    const parsed = parseServerContentWithInnerBlocks(serverContent, {
+    const parsed = window.NativeBlocksParser.parseServerContentWithInnerBlocks(serverContent, {
         allowedBlocks: ['core/paragraph'],
         template: [['core/paragraph']]
     });

@@ -7,5 +7,6 @@ module.exports = {
 		'native-blocks-npx/view': './src/native-blocks-npx/view.js',
 		'native-ssr-inner/index': './src/native-ssr-inner/index.js',
 		'native-ssr/index': './src/native-ssr/index.js',
+		'shared/dom-to-react-parser': './src/shared/dom-to-react-parser.js',
 	},
 };

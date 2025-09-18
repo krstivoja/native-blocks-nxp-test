@@ -20,6 +20,22 @@ if ( ! defined( 'ABSPATH' ) ) {
 // Include the InnerBlocks processor utility
 require_once __DIR__ . '/includes/innerblocks-processor.php';
 
+/**
+ * Enqueue the shared parser script
+ */
+function nbnpx_enqueue_shared_parser() {
+	$asset_file = include __DIR__ . '/build/shared/dom-to-react-parser.asset.php';
+	
+	wp_enqueue_script(
+		'native-blocks-parser',
+		plugins_url('build/shared/dom-to-react-parser.js', __FILE__),
+		$asset_file['dependencies'],
+		$asset_file['version'],
+		true
+	);
+}
+add_action('enqueue_block_editor_assets', 'nbnpx_enqueue_shared_parser');
+
 function nbnpx_native_blocks_npx_block_init() {
 	
 	if ( function_exists( 'wp_register_block_types_from_metadata_collection' ) ) {

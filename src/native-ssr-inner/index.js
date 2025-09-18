@@ -2,7 +2,6 @@ import { registerBlockType } from '@wordpress/blocks';
 import { useBlockProps, InnerBlocks } from '@wordpress/block-editor';
 import { useState, useEffect } from '@wordpress/element';
 import { Spinner } from '@wordpress/components';
-import { createServerContentRenderer } from '../shared';
 import './style.scss';
 import './editor.scss';
 import metadata from './block.json';
@@ -54,8 +53,8 @@ function Edit() {
 		);
 	}
 
-	// Use the shared parser to render server content with InnerBlocks support
-	return createServerContentRenderer(serverContent, blockProps, {
+	// Use the global parser to render server content with InnerBlocks support
+	return window.NativeBlocksParser.createServerContentRenderer(serverContent, blockProps, {
 		allowedBlocks: ALLOWED_BLOCKS,
 		template: TEMPLATE,
 		templateLock: false
