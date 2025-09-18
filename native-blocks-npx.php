@@ -32,15 +32,19 @@ function nbnpx_native_blocks_npx_block_init() {
 	}
 
 	$manifest_data = require __DIR__ . '/build/blocks-manifest.php';
-	foreach ( array_keys( $manifest_data ) as $block_type ) {
-		// Check if this is an InnerBlocks block
-		if ( $block_type === 'native-ssr-and-inner' ) {
+	foreach ( $manifest_data as $block_type => $block_config ) {
+		// Check if this block supports InnerBlocks
+		$supports_innerblocks = isset( $block_config['supports']['innerBlocks'] ) && $block_config['supports']['innerBlocks'];
+		
+		if ( $supports_innerblocks ) {
+			// Use the InnerBlocks processor for blocks that support inner blocks
 			register_block_type( __DIR__ . "/build/{$block_type}", [
 				'render_callback' => nbnpx_create_innerblocks_render_callback(
 					__DIR__ . "/src/{$block_type}/render.php"
 				)
 			]);
 		} else {
+			// Use standard registration for blocks without InnerBlocks support
 			register_block_type( __DIR__ . "/build/{$block_type}" );
 		}
 	}

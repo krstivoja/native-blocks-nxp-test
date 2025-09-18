@@ -16,5 +16,5 @@
 	"editorScript": "file:./index.js",
 	"editorStyle": "file:./index.css",
 	"style": "file:./style-index.css",
-	"render": "file:./render-wrapper.php"
+	"render": "file:./render.php"
 }
