@@ -1,11 +1,12 @@
 import { registerBlockType } from '@wordpress/blocks';
 import { useBlockProps, InnerBlocks } from '@wordpress/block-editor';
-import { useState, useEffect } from '@wordpress/element';
+import { useState, useEffect, useMemo, memo } from '@wordpress/element';
 import { Spinner } from '@wordpress/components';
 import './style.scss';
 import './editor.scss';
 import metadata from './block.json';
 
+// Move constants outside component to prevent recreation
 const ALLOWED_BLOCKS = [
 	'core/paragraph',
 	'core/heading',
@@ -20,7 +21,14 @@ const TEMPLATE = [
 	['core/paragraph', { placeholder: 'Add some content here...' }]
 ];
 
-function Edit() {
+// Memoized options object to prevent recreation
+const PARSER_OPTIONS = {
+	allowedBlocks: ALLOWED_BLOCKS,
+	template: TEMPLATE,
+	templateLock: false
+};
+
+const Edit = memo(function Edit() {
 	const [serverContent, setServerContent] = useState('');
 	const [isLoading, setIsLoading] = useState(true);
 
@@ -45,6 +53,12 @@ function Edit() {
 
 	const blockProps = useBlockProps();
 
+	// Memoize the parser call to prevent unnecessary re-renders
+	const renderedContent = useMemo(() => {
+		if (isLoading) return null;
+		return window.NativeBlocksParser.createServerContentRenderer(serverContent, blockProps, PARSER_OPTIONS);
+	}, [serverContent, blockProps, isLoading]);
+
 	if (isLoading) {
 		return (
 			<div { ...blockProps }>
@@ -53,13 +67,8 @@ function Edit() {
 		);
 	}
 
-	// Use the global parser to render server content with InnerBlocks support
-	return window.NativeBlocksParser.createServerContentRenderer(serverContent, blockProps, {
-		allowedBlocks: ALLOWED_BLOCKS,
-		template: TEMPLATE,
-		templateLock: false
-	});
-}
+	return renderedContent;
+});
 
 registerBlockType( metadata.name, {
 	edit: Edit,

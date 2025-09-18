@@ -1,12 +1,12 @@
 import { registerBlockType } from '@wordpress/blocks';
 import { useBlockProps } from '@wordpress/block-editor';
-import { useState, useEffect } from '@wordpress/element';
+import { useState, useEffect, useMemo, memo } from '@wordpress/element';
 import { Spinner } from '@wordpress/components';
 import './style.scss';
 import './editor.scss';
 import metadata from './block.json';
 
-function Edit() {
+const Edit = memo(function Edit() {
 	const [serverContent, setServerContent] = useState('');
 	const [isLoading, setIsLoading] = useState(true);
 	const blockProps = useBlockProps();
@@ -30,6 +30,12 @@ function Edit() {
 		});
 	}, []);
 
+	// Memoize the parser call to prevent unnecessary re-renders
+	const renderedContent = useMemo(() => {
+		if (isLoading) return null;
+		return window.NativeBlocksParser.createServerContentRenderer(serverContent, blockProps);
+	}, [serverContent, blockProps, isLoading]);
+
 	if (isLoading) {
 		return (
 			<div { ...blockProps }>
@@ -38,10 +44,8 @@ function Edit() {
 		);
 	}
 
-	// Use the global parser to render server content
-	// This block doesn't have InnerBlocks, so it will just render the content as-is
-	return window.NativeBlocksParser.createServerContentRenderer(serverContent, blockProps);
-}
+	return renderedContent;
+});
 
 registerBlockType( metadata.name, {
 	edit: Edit,

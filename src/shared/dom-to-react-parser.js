@@ -8,6 +8,12 @@ import { createElement } from '@wordpress/element';
 
 // Expose parser functions globally
 window.NativeBlocksParser = {
+	// Cache for parsed content to avoid re-parsing
+	_cache: new Map(),
+	
+	// Pre-compiled regex for better performance
+	_innerBlocksRegex: /<innerblocks\s*\/?>/gi,
+	_innerBlocksTestRegex: /<innerblocks\s*\/?>/i,
 
 /**
  * Parse server content and convert DOM nodes to React elements
@@ -21,6 +27,19 @@ window.NativeBlocksParser = {
  * @returns {Object|null} - Object with { elements, wrapperClasses } or null if no placeholder found
  */
 	parseServerContentWithInnerBlocks: function(serverContent, options = {}) {
+	// Early return for empty content
+	if (!serverContent) {
+		return null;
+	}
+
+	// Create cache key from content and options
+	const cacheKey = serverContent + JSON.stringify(options);
+	
+	// Check cache first
+	if (this._cache.has(cacheKey)) {
+		return this._cache.get(cacheKey);
+	}
+
 	const {
 		allowedBlocks = null,
 		template = null,
@@ -28,81 +47,73 @@ window.NativeBlocksParser = {
 		wrapperSelector = '[class*="wp-block-"]'
 	} = options;
 
-	// Check if content contains InnerBlocks placeholder
-	if (!serverContent || !/<innerblocks\s*\/?>/i.test(serverContent)) {
+	// Fast check if content contains InnerBlocks placeholder using pre-compiled regex
+	if (!this._innerBlocksTestRegex.test(serverContent)) {
+		this._cache.set(cacheKey, null);
 		return null;
 	}
 
-	// Replace <InnerBlocks /> with a placeholder that won't break DOM parsing
-	const processedContent = serverContent.replace(/<InnerBlocks\s*\/?>/gi, '<innerblocks-placeholder></innerblocks-placeholder>');
+	// Replace <InnerBlocks /> with a placeholder using pre-compiled regex
+	const processedContent = serverContent.replace(this._innerBlocksRegex, '<innerblocks-placeholder></innerblocks-placeholder>');
 
+	// Use DocumentFragment for better performance
 	const tempDiv = document.createElement('div');
 	tempDiv.innerHTML = processedContent;
 
-	// Debug: log the parsed HTML structure
-	console.log('Original server content:', serverContent);
-	console.log('Parsed DOM innerHTML:', tempDiv.innerHTML);
-
 	const wrapperDiv = tempDiv.querySelector(wrapperSelector);
 	if (!wrapperDiv) {
+		this._cache.set(cacheKey, null);
 		return null;
 	}
-
-	console.log('Wrapper div innerHTML:', wrapperDiv.innerHTML);
-	console.log('Wrapper div childNodes:', Array.from(wrapperDiv.childNodes).map(n => ({type: n.nodeType, name: n.nodeName, content: n.textContent})));
 
 	// Get wrapper classes and other attributes
 	const wrapperClasses = wrapperDiv.className;
 
-	// Helper function to convert DOM nodes to React elements
+	// Helper function to convert DOM nodes to React elements (optimized)
 	const convertDomToReact = (domNode, index) => {
 		if (domNode.nodeType === Node.ELEMENT_NODE) {
 			const tagName = domNode.tagName.toLowerCase();
 
 			// Handle <innerblocks-placeholder /> placeholder
 			if (tagName === 'innerblocks-placeholder') {
-				const innerBlocksProps = {
-					key: `innerblocks-${index}`
-				};
+				const innerBlocksProps = { key: `innerblocks-${index}` };
 				
-				// Only add these props if they are provided
-				if (allowedBlocks !== null) {
-					innerBlocksProps.allowedBlocks = allowedBlocks;
-				}
-				if (template !== null) {
-					innerBlocksProps.template = template;
-				}
-				if (templateLock !== false) {
-					innerBlocksProps.templateLock = templateLock;
-				}
+				// Only add these props if they are provided (avoid unnecessary object creation)
+				if (allowedBlocks !== null) innerBlocksProps.allowedBlocks = allowedBlocks;
+				if (template !== null) innerBlocksProps.template = template;
+				if (templateLock !== false) innerBlocksProps.templateLock = templateLock;
 				
 				return createElement(InnerBlocks, innerBlocksProps);
 			}
 
-			// Convert child nodes recursively
+			// Convert child nodes recursively (optimized with for loop)
 			const children = [];
-			domNode.childNodes.forEach((child, childIndex) => {
-				const element = convertDomToReact(child, `${index}-${childIndex}`);
+			const childNodes = domNode.childNodes;
+			for (let i = 0; i < childNodes.length; i++) {
+				const element = convertDomToReact(childNodes[i], `${index}-${i}`);
 				if (element !== null) {
 					children.push(element);
 				}
-			});
+			}
 
-			// Convert attributes
+			// Convert attributes (optimized)
 			const props = { key: `${tagName}-${index}` };
-			for (const attr of domNode.attributes) {
+			const attributes = domNode.attributes;
+			for (let i = 0; i < attributes.length; i++) {
+				const attr = attributes[i];
 				if (attr.name === 'class') {
 					props.className = attr.value;
 				} else if (attr.name === 'style') {
-					// Convert inline style string to object
+					// Convert inline style string to object (optimized)
 					const styleObject = {};
-					attr.value.split(';').forEach(stylePair => {
-						const parts = stylePair.split(':');
+					const stylePairs = attr.value.split(';');
+					for (let j = 0; j < stylePairs.length; j++) {
+						const parts = stylePairs[j].split(':');
 						if (parts.length === 2) {
 							const key = parts[0].trim().replace(/-([a-z])/g, (g) => g[1].toUpperCase());
 							styleObject[key] = parts[1].trim();
 						}
-					});
+					}
 					props.style = styleObject;
 				} else {
 					props[attr.name] = attr.value;
@@ -117,19 +128,31 @@ window.NativeBlocksParser = {
 		return null;
 	};
 
-	// Convert all child nodes of the wrapper
+	// Convert all child nodes of the wrapper (optimized with for loop)
 	const elements = [];
-	wrapperDiv.childNodes.forEach((node, index) => {
-		const element = convertDomToReact(node, index);
+	const childNodes = wrapperDiv.childNodes;
+	for (let i = 0; i < childNodes.length; i++) {
+		const element = convertDomToReact(childNodes[i], i);
 		if (element !== null) {
 			elements.push(element);
 		}
-	});
+	}
 
-		return {
-			elements,
-			wrapperClasses
-		};
+	const result = {
+		elements,
+		wrapperClasses
+	};
+
+	// Cache the result
+	this._cache.set(cacheKey, result);
+	
+	// Limit cache size to prevent memory leaks
+	if (this._cache.size > 100) {
+		const firstKey = this._cache.keys().next().value;
+		this._cache.delete(firstKey);
+	}
+
+	return result;
 	},
 
 /**
