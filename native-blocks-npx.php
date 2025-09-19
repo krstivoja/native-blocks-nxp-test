@@ -27,7 +27,7 @@ function nbnpx_has_innerblocks_in_templates() {
 	$manifest_data = require __DIR__ . '/build/blocks-manifest.php';
 
 	foreach ( $manifest_data as $block_type => $block_config ) {
-		$render_file = __DIR__ . "/src/{$block_type}/render.php";
+		$render_file = __DIR__ . "/build/{$block_type}/render.php";
 
 		if ( file_exists( $render_file ) ) {
 			$content = file_get_contents( $render_file );
@@ -62,19 +62,13 @@ add_action('enqueue_block_editor_assets', 'nbnpx_enqueue_shared_parser');
 
 function nbnpx_native_blocks_npx_block_init() {
 
-	// Skip auto-registration to allow custom render callbacks for InnerBlocks processing
-	// if ( function_exists( 'wp_register_block_types_from_metadata_collection' ) ) {
-	//	wp_register_block_types_from_metadata_collection( __DIR__ . '/build', __DIR__ . '/build/blocks-manifest.php' );
-	//	return;
-	// }
-
 	if ( function_exists( 'wp_register_block_metadata_collection' ) ) {
 		wp_register_block_metadata_collection( __DIR__ . '/build', __DIR__ . '/build/blocks-manifest.php' );
 	}
 
 	$manifest_data = require __DIR__ . '/build/blocks-manifest.php';
 	foreach ( $manifest_data as $block_type => $block_config ) {
-		$render_file = __DIR__ . "/src/{$block_type}/render.php";
+		$render_file = __DIR__ . "/build/{$block_type}/render.php";
 
 		// Check if this block's render template contains <InnerBlocks />
 		$has_innerblocks_in_template = false;
