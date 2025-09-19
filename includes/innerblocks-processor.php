@@ -64,8 +64,12 @@ function nbnpx_process_innerblocks_template( $template_path, $attributes = [], $
 	$is_editor_context = defined('REST_REQUEST') && REST_REQUEST;
 
 	if ( $is_editor_context ) {
-		// In editor: keep <InnerBlocks /> as placeholder for JavaScript to process
-		return $rendered_content;
+		// In editor: replace any InnerBlocks variation with standardized placeholder for JavaScript
+		return preg_replace(
+			NBNPX_INNERBLOCKS_PATTERN,
+			'<div class="fanculo-block-inserter"></div>',
+			$rendered_content
+		);
 	} else {
 		// On frontend: replace <InnerBlocks /> with actual inner blocks content
 		return preg_replace(

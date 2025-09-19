@@ -11,9 +11,8 @@ window.NativeBlocksParser = {
 	// Cache for parsed content to avoid re-parsing
 	_cache: new Map(),
 	
-	// Pre-compiled regex for better performance
-	_innerBlocksRegex: /<innerblocks\s*\/?>/gi,
-	_innerBlocksTestRegex: /<innerblocks\s*\/?>/i,
+	// CSS selector for standardized placeholder
+	_inserterSelector: '.fanculo-block-inserter',
 
 /**
  * Parse server content and convert DOM nodes to React elements
@@ -47,21 +46,18 @@ window.NativeBlocksParser = {
 		wrapperSelector = '[class*="wp-block-"]'
 	} = options;
 
-	// Fast check if content contains InnerBlocks placeholder using pre-compiled regex
-	if (!this._innerBlocksTestRegex.test(serverContent)) {
+	// Parse server content directly (no need for regex pre-check)
+	const tempDiv = document.createElement('div');
+	tempDiv.innerHTML = serverContent;
+
+	const wrapperDiv = tempDiv.querySelector(wrapperSelector);
+	if (!wrapperDiv) {
 		this._cache.set(cacheKey, null);
 		return null;
 	}
 
-	// Replace <InnerBlocks /> with a placeholder using pre-compiled regex
-	const processedContent = serverContent.replace(this._innerBlocksRegex, '<innerblocks-placeholder></innerblocks-placeholder>');
-
-	// Use DocumentFragment for better performance
-	const tempDiv = document.createElement('div');
-	tempDiv.innerHTML = processedContent;
-
-	const wrapperDiv = tempDiv.querySelector(wrapperSelector);
-	if (!wrapperDiv) {
+	// Quick check if there are any inserter placeholders
+	if (!wrapperDiv.querySelector(this._inserterSelector)) {
 		this._cache.set(cacheKey, null);
 		return null;
 	}
@@ -74,8 +70,8 @@ window.NativeBlocksParser = {
 		if (domNode.nodeType === Node.ELEMENT_NODE) {
 			const tagName = domNode.tagName.toLowerCase();
 
-			// Handle <innerblocks-placeholder /> placeholder
-			if (tagName === 'innerblocks-placeholder') {
+			// Handle inserter placeholder
+			if (domNode.classList && domNode.classList.contains('fanculo-block-inserter')) {
 				const innerBlocksProps = { key: `innerblocks-${index}` };
 				
 				// Only add these props if they are provided (avoid unnecessary object creation)
