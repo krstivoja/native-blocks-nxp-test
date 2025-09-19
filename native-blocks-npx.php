@@ -61,12 +61,13 @@ function nbnpx_enqueue_shared_parser() {
 add_action('enqueue_block_editor_assets', 'nbnpx_enqueue_shared_parser');
 
 function nbnpx_native_blocks_npx_block_init() {
-	
-	if ( function_exists( 'wp_register_block_types_from_metadata_collection' ) ) {
-		wp_register_block_types_from_metadata_collection( __DIR__ . '/build', __DIR__ . '/build/blocks-manifest.php' );
-		return;
-	}
-	
+
+	// Skip auto-registration to allow custom render callbacks for InnerBlocks processing
+	// if ( function_exists( 'wp_register_block_types_from_metadata_collection' ) ) {
+	//	wp_register_block_types_from_metadata_collection( __DIR__ . '/build', __DIR__ . '/build/blocks-manifest.php' );
+	//	return;
+	// }
+
 	if ( function_exists( 'wp_register_block_metadata_collection' ) ) {
 		wp_register_block_metadata_collection( __DIR__ . '/build', __DIR__ . '/build/blocks-manifest.php' );
 	}
