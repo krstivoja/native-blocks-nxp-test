@@ -42,5 +42,5 @@ function nbnpx_native_blocks_npx_block_init() {
 }
 
 // Hook into WordPress
-add_action('enqueue_block_editor_assets', 'nbnpx_enqueue_shared_parser');
+
 add_action( 'init', 'nbnpx_native_blocks_npx_block_init' );

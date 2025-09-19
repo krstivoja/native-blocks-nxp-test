@@ -119,3 +119,4 @@ function nbnpx_enqueue_shared_parser() {
 	}
 }
 
+add_action('enqueue_block_editor_assets', 'nbnpx_enqueue_shared_parser');
