@@ -21,50 +21,15 @@ if ( ! defined( 'ABSPATH' ) ) {
 require_once __DIR__ . '/includes/innerblocks-processor.php';
 
 /**
- * Check if any block render templates contain <InnerBlocks /> placeholders
+ * Initialize and register all blocks with proper InnerBlocks handling
  */
-function nbnpx_has_innerblocks_in_templates() {
-	$render_files = glob( __DIR__ . '/build/*/render.php' );
-
-	foreach ( $render_files as $render_file ) {
-		if ( nbnpx_file_has_innerblocks( $render_file ) ) {
-			return true;
-		}
-	}
-
-	return false;
-}
-
-/**
- * Conditionally enqueue the shared parser script only if templates actually contain <InnerBlocks />
- */
-function nbnpx_enqueue_shared_parser() {
-	// Only load the parser if we actually have <InnerBlocks /> in templates
-	if ( nbnpx_has_innerblocks_in_templates() ) {
-		$asset_file = include __DIR__ . '/build/shared/dom-to-react-parser.asset.php';
-
-		wp_enqueue_script(
-			'native-blocks-parser',
-			plugins_url('build/shared/dom-to-react-parser.js', __FILE__),
-			$asset_file['dependencies'],
-			$asset_file['version'],
-			true
-		);
-	}
-}
-add_action('enqueue_block_editor_assets', 'nbnpx_enqueue_shared_parser');
-
 function nbnpx_native_blocks_npx_block_init() {
-
-	if ( function_exists( 'wp_register_block_metadata_collection' ) ) {
-		wp_register_block_metadata_collection( __DIR__ . '/build', __DIR__ . '/build/blocks-manifest.php' );
-	}
-
 	$manifest_data = require __DIR__ . '/build/blocks-manifest.php';
+
 	foreach ( $manifest_data as $block_type => $block_config ) {
 		$render_file = __DIR__ . "/build/{$block_type}/render.php";
 
-		if ( nbnpx_file_has_innerblocks( $render_file ) ) {
+		if ( file_exists( $render_file ) && nbnpx_file_has_innerblocks( $render_file ) ) {
 			// Use the InnerBlocks processor for blocks that have <InnerBlocks /> in templates
 			register_block_type( __DIR__ . "/build/{$block_type}", [
 				'render_callback' => nbnpx_create_innerblocks_render_callback( $render_file )
@@ -75,4 +40,7 @@ function nbnpx_native_blocks_npx_block_init() {
 		}
 	}
 }
+
+// Hook into WordPress
+add_action('enqueue_block_editor_assets', 'nbnpx_enqueue_shared_parser');
 add_action( 'init', 'nbnpx_native_blocks_npx_block_init' );
