@@ -24,17 +24,11 @@ require_once __DIR__ . '/includes/innerblocks-processor.php';
  * Check if any block render templates contain <InnerBlocks /> placeholders
  */
 function nbnpx_has_innerblocks_in_templates() {
-	$manifest_data = require __DIR__ . '/build/blocks-manifest.php';
+	$render_files = glob( __DIR__ . '/build/*/render.php' );
 
-	foreach ( $manifest_data as $block_type => $block_config ) {
-		$render_file = __DIR__ . "/build/{$block_type}/render.php";
-
-		if ( file_exists( $render_file ) ) {
-			$content = file_get_contents( $render_file );
-			// Use the same detection logic as the processor
-			if ( preg_match( '/<InnerBlocks(?:\s*\/?>|><\/InnerBlocks>)/i', $content ) ) {
-				return true;
-			}
+	foreach ( $render_files as $render_file ) {
+		if ( nbnpx_file_has_innerblocks( $render_file ) ) {
+			return true;
 		}
 	}
 
@@ -70,14 +64,7 @@ function nbnpx_native_blocks_npx_block_init() {
 	foreach ( $manifest_data as $block_type => $block_config ) {
 		$render_file = __DIR__ . "/build/{$block_type}/render.php";
 
-		// Check if this block's render template contains <InnerBlocks />
-		$has_innerblocks_in_template = false;
-		if ( file_exists( $render_file ) ) {
-			$content = file_get_contents( $render_file );
-			$has_innerblocks_in_template = preg_match( '/<InnerBlocks(?:\s*\/?>|><\/InnerBlocks>)/i', $content );
-		}
-
-		if ( $has_innerblocks_in_template ) {
+		if ( nbnpx_file_has_innerblocks( $render_file ) ) {
 			// Use the InnerBlocks processor for blocks that have <InnerBlocks /> in templates
 			register_block_type( __DIR__ . "/build/{$block_type}", [
 				'render_callback' => nbnpx_create_innerblocks_render_callback( $render_file )

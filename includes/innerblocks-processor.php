@@ -9,6 +9,31 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
+ * Check if content contains InnerBlocks placeholders
+ *
+ * @param string $content Content to check
+ * @return bool True if InnerBlocks found
+ */
+function nbnpx_has_innerblocks( $content ) {
+    return preg_match( '/<InnerBlocks(?:\s*\/?>|><\/InnerBlocks>)/i', $content );
+}
+
+/**
+ * Check if a specific file contains InnerBlocks placeholders
+ *
+ * @param string $file_path Path to the file to check
+ * @return bool True if file exists and contains InnerBlocks
+ */
+function nbnpx_file_has_innerblocks( $file_path ) {
+    if ( ! file_exists( $file_path ) ) {
+        return false;
+    }
+
+    $content = file_get_contents( $file_path );
+    return nbnpx_has_innerblocks( $content );
+}
+
+/**
  * Process a block template and replace <InnerBlocks /> with appropriate content
  *
  * @param string $template_path Path to the clean template file
@@ -39,14 +64,11 @@ function nbnpx_process_innerblocks_template( $template_path, $attributes = [], $
         return $rendered_content;
     } else {
         // On frontend: replace <InnerBlocks /> with actual inner blocks content
-        // Combine both patterns for better performance
-        $processed_content = preg_replace(
+        return preg_replace(
             '/<InnerBlocks(?:\s*\/?>|><\/InnerBlocks>)/i',
             $content ?? '',
             $rendered_content
         );
-
-        return $processed_content;
     }
 }
 
