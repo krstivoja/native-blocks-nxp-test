@@ -18,7 +18,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Include the InnerBlocks processor utility
-require_once __DIR__ . '/includes/innerblocks-processor.php';
+require_once __DIR__ . '/inc/innerblocks-processor.php';
 
 /**
  * Initialize and register all blocks with proper InnerBlocks handling

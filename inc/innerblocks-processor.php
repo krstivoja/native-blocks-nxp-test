@@ -115,7 +115,7 @@ function nbnpx_enqueue_shared_parser() {
 	if ( nbnpx_has_innerblocks_in_templates() ) {
 		wp_enqueue_script(
 			'native-blocks-parser',
-			plugins_url('assets/dom-to-react-parser.js', dirname(__FILE__)),
+			plugins_url('assets/innerblocks-parser.js', dirname(__FILE__)),
 			['wp-element', 'wp-block-editor'], // WordPress dependencies
 			'1.0.0',
 			true
